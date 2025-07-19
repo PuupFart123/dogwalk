@@ -46,12 +46,18 @@ const UploadPage: React.FC = () => {
 
     try {
       // Real upload to backend
+      // Get current user data
+      const userData = localStorage.getItem('dogwalk_user');
+      const currentUser = userData ? JSON.parse(userData) : { username: 'demo_user' };
+
       await apiService.uploadVideo(
         selectedFile,
         videoTitle,
         videoDescription,
-        'demo_user' // In real app, get from auth
+        currentUser.username
       );
+
+      // Backend will handle updating user stats automatically
 
       setUploadProgress(100);
       setIsUploading(false);

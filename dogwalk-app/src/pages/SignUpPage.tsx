@@ -71,17 +71,31 @@ const SignUpPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Store user data in localStorage for demo
+      // Real API call to register user
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          bio: formData.bio || 'Dog walking enthusiast sharing the beauty of different locations around the world! 🌍🐕',
+          location: formData.location || 'Global',
+          profileImage: formData.profileImage ? URL.createObjectURL(formData.profileImage) : null
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Registration failed');
+      }
+
+      // Store minimal user data in localStorage for session management
       const userData = {
         username: formData.username,
         email: formData.email,
-        bio: formData.bio,
-        location: formData.location,
-        profileImage: formData.profileImage ? URL.createObjectURL(formData.profileImage) : null,
-        joinDate: new Date().toISOString()
+        profileImage: formData.profileImage ? URL.createObjectURL(formData.profileImage) : null
       };
       
       localStorage.setItem('dogwalk_user', JSON.stringify(userData));

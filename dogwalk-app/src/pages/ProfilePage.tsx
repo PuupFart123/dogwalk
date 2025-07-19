@@ -22,43 +22,55 @@ const ProfilePage: React.FC = () => {
   const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   useEffect(() => {
-    // Get user data from localStorage
-    const userData = localStorage.getItem('dogwalk_user');
-    if (userData) {
-      const currentUser = JSON.parse(userData);
-      setIsCurrentUser(currentUser.username === username);
-      
-      // For demo, use current user data or create mock data
-      if (currentUser.username === username) {
+    const fetchUserData = async () => {
+      try {
+        // Get current user from localStorage for comparison
+        const userData = localStorage.getItem('dogwalk_user');
+        const currentUser = userData ? JSON.parse(userData) : null;
+        setIsCurrentUser(currentUser?.username === username);
+
+        // Fetch real user data from API
+        const response = await fetch(`/api/users/${username}`);
+        if (!response.ok) {
+          throw new Error('User not found');
+        }
+
+        const userProfile = await response.json();
+        
         setUser({
-          ...currentUser,
-          displayName: currentUser.username,
-          avatar: currentUser.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-          followers: 1247,
-          following: 892,
-          totalLikes: 5678,
-          videosCount: 23,
-          achievements: 5,
-          joinDate: new Date(currentUser.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+          ...userProfile,
+          displayName: userProfile.username,
+          avatar: userProfile.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          joinDate: new Date(userProfile.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         });
-      } else {
-        // Mock data for other users
-        setUser({
-          username: username || 'demo_user',
-          displayName: 'Yuki Tanaka',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-          bio: 'Tokyo-based photographer capturing the city\'s atmosphere through nightly dog walks. Sharing the magic of urban nights! 🌃✨',
-          followers: 1247,
-          following: 892,
-          totalLikes: 5678,
-          videosCount: 23,
-          achievements: 5,
-          joinDate: 'March 2023'
-        });
-      }
-    } else {
-      // No user logged in, redirect to login
-      navigate('/login');
+
+        // Fetch user's videos
+        const videosResponse = await fetch(`/api/users/${username}/videos`);
+        if (videosResponse.ok) {
+          const videos = await videosResponse.json();
+          setUserVideos(videos);
+        }
+
+        // Set achievements from API response
+        setAchievements(userProfile.achievements || []);
+
+             } catch (error) {
+         console.error('Error fetching user data:', error);
+         const userData = localStorage.getItem('dogwalk_user');
+         const currentUser = userData ? JSON.parse(userData) : null;
+         
+         if (currentUser?.username === username) {
+           // If it's the current user but API failed, redirect to login
+           navigate('/login');
+         } else {
+           // For other users, show error or redirect
+           navigate('/');
+         }
+       }
+    };
+
+    if (username) {
+      fetchUserData();
     }
   }, [username, navigate]);
 
@@ -71,43 +83,15 @@ const ProfilePage: React.FC = () => {
     setIsEditing(true);
   };
 
-  const userVideos: UserVideo[] = [
-    {
-      id: '1',
-      title: 'Night walk under the stars in Tokyo',
-      thumbnail: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=400&h=300&fit=crop',
-      likes: 1247,
-      comments: 89,
-      shares: 234,
-      uploadDate: '2 days ago'
-    },
-    {
-      id: '2',
-      title: 'Morning fog in the Scottish Highlands',
-      thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop',
-      likes: 892,
-      comments: 156,
-      shares: 445,
-      uploadDate: '1 week ago'
-    },
-    {
-      id: '3',
-      title: 'Sunset stroll through Moroccan streets',
-      thumbnail: 'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400&h=300&fit=crop',
-      likes: 756,
-      comments: 67,
-      shares: 123,
-      uploadDate: '2 weeks ago'
-    }
-  ];
+  const [userVideos, setUserVideos] = useState<UserVideo[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
 
-  const achievements = [
-    { id: 1, name: 'First Upload', icon: '🎬', description: 'Uploaded your first video' },
-    { id: 2, name: 'Viral Sensation', icon: '🔥', description: 'Video reached 1000+ likes' },
-    { id: 3, name: 'AI Champion', icon: '🤖', description: 'Achieved AI score of 9.0+' },
-    { id: 4, name: 'Weekly Winner', icon: '🏆', description: 'Won a weekly contest' },
-    { id: 5, name: 'Community Builder', icon: '👥', description: 'Gained 1000+ followers' }
-  ];
+  useEffect(() => {
+    if (user) {
+      setUserVideos(user.userVideos || []);
+      setAchievements(user.achievementsList || []);
+    }
+  }, [user]);
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';

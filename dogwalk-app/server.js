@@ -57,6 +57,46 @@ db.serialize(() => {
     username TEXT,
     UNIQUE(videoId, username)
   )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    username TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    bio TEXT,
+    location TEXT,
+    profileImage TEXT,
+    joinDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    followers INTEGER DEFAULT 0,
+    following INTEGER DEFAULT 0,
+    totalLikes INTEGER DEFAULT 0,
+    totalViews INTEGER DEFAULT 0,
+    totalShares INTEGER DEFAULT 0,
+    totalComments INTEGER DEFAULT 0
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS user_achievements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    achievementId INTEGER,
+    earnedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(username, achievementId)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS achievements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    icon TEXT NOT NULL,
+    description TEXT NOT NULL,
+    requirement TEXT NOT NULL
+  )`);
+
+  // Insert default achievements
+  db.run(`INSERT OR IGNORE INTO achievements (id, name, icon, description, requirement) VALUES 
+    (1, 'First Upload', '🎬', 'Uploaded your first video', 'upload_first_video'),
+    (2, 'Viral Sensation', '🔥', 'Video reached 1000+ likes', 'video_1000_likes'),
+    (3, 'AI Champion', '🤖', 'Achieved AI score of 9.0+', 'ai_score_9_plus'),
+    (4, 'Weekly Winner', '🏆', 'Won a weekly contest', 'weekly_winner'),
+    (5, 'Community Builder', '👥', 'Gained 1000+ followers', 'followers_1000_plus')
+  `);
 });
 
 // Multer configuration for file uploads
@@ -143,6 +183,13 @@ app.post('/api/videos', upload.single('video'), (req, res) => {
       return;
     }
 
+    // Update user's video count
+    db.run(`
+      UPDATE users 
+      SET videosCount = (SELECT COUNT(*) FROM videos WHERE username = ?)
+      WHERE username = ?
+    `, [username, username]);
+
     res.json({
       success: true,
       videoId: videoId,
@@ -183,6 +230,23 @@ app.post('/api/videos/:videoId/like', (req, res) => {
           res.status(500).json({ error: err.message });
           return;
         }
+        
+        // Update video owner's total likes
+        db.run(`
+          UPDATE users 
+          SET totalLikes = (
+            SELECT COUNT(l.id) 
+            FROM videos v 
+            JOIN likes l ON v.id = l.videoId 
+            WHERE v.username = (
+              SELECT username FROM videos WHERE id = ?
+            )
+          )
+          WHERE username = (
+            SELECT username FROM videos WHERE id = ?
+          )
+        `, [videoId, videoId]);
+        
         res.json({ liked: true, message: 'Video liked' });
       });
     }
@@ -357,6 +421,82 @@ app.get('/api/winners/weekly', (req, res) => {
     }));
 
     res.json(winners);
+  });
+});
+
+// User registration
+app.post('/api/users/register', (req, res) => {
+  const { username, email, bio, location, profileImage } = req.body;
+
+  if (!username || !email) {
+    return res.status(400).json({ error: 'Username and email are required' });
+  }
+
+  db.run(`
+    INSERT INTO users (username, email, bio, location, profileImage)
+    VALUES (?, ?, ?, ?, ?)
+  `, [username, email, bio || '', location || '', profileImage || null], function(err) {
+    if (err) {
+      if (err.message.includes('UNIQUE constraint failed')) {
+        res.status(400).json({ error: 'Username or email already exists' });
+      } else {
+        res.status(500).json({ error: err.message });
+      }
+      return;
+    }
+
+    // Award "First Upload" achievement
+    db.run('INSERT INTO user_achievements (username, achievementId) VALUES (?, 1)', [username]);
+
+    res.json({
+      success: true,
+      message: 'User registered successfully!'
+    });
+  });
+});
+
+// Get user profile
+app.get('/api/users/:username', (req, res) => {
+  const { username } = req.params;
+  
+  db.get(`
+    SELECT u.*, 
+           COUNT(DISTINCT v.id) as videosCount,
+           COUNT(DISTINCT ua.achievementId) as achievementsCount
+    FROM users u
+    LEFT JOIN videos v ON u.username = v.username
+    LEFT JOIN user_achievements ua ON u.username = ua.username
+    WHERE u.username = ?
+    GROUP BY u.username
+  `, [username], (err, user) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    // Get user's achievements
+    db.all(`
+      SELECT a.*, ua.earnedDate
+      FROM achievements a
+      JOIN user_achievements ua ON a.id = ua.achievementId
+      WHERE ua.username = ?
+      ORDER BY ua.earnedDate DESC
+    `, [username], (err, achievements) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+
+      res.json({
+        ...user,
+        achievements: achievements || []
+      });
+    });
   });
 });
 
