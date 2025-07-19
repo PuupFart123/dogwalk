@@ -45,22 +45,29 @@ const LoginPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo, check if user exists in localStorage
-      const userData = localStorage.getItem('dogwalk_user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        if (user.email === formData.email) {
-          // Redirect to profile
-          navigate(`/profile/${user.username}`);
-        } else {
-          setErrors({ general: 'Invalid email or password' });
-        }
-      } else {
-        setErrors({ general: 'No account found. Please sign up first.' });
+      // Real API call to authenticate user
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
       }
+
+      const result = await response.json();
+      
+      // Store user data in localStorage for session management
+      localStorage.setItem('dogwalk_user', JSON.stringify(result.user));
+      
+      // Redirect to profile
+      navigate(`/profile/${result.user.username}`);
     } catch (error) {
       console.error('Login error:', error);
       setErrors({ general: 'Failed to sign in. Please try again.' });

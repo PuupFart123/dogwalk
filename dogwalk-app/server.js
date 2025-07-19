@@ -424,6 +424,36 @@ app.get('/api/winners/weekly', (req, res) => {
   });
 });
 
+// User login
+app.post('/api/users/login', (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  db.get('SELECT * FROM users WHERE email = ?', [email], (err, user) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+
+    if (!user) {
+      res.status(401).json({ error: 'Invalid email or password' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      user: {
+        username: user.username,
+        email: user.email,
+        profileImage: user.profileImage
+      }
+    });
+  });
+});
+
 // User registration
 app.post('/api/users/register', (req, res) => {
   const { username, email, bio, location, profileImage } = req.body;
