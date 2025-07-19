@@ -1,0 +1,233 @@
+.trending-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.trending-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.trending-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.winners-preview {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.winners-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.winner-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.winner-rank {
+  font-size: 1.5rem;
+}
+
+.winner-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.winner-title {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.winner-username {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.winner-likes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.prize-info {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.prize-amount {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.prize-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.trending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trending-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.trending-item:hover {
+  background: #f8f9fa;
+}
+
+.trending-rank {
+  font-weight: bold;
+  color: #667eea;
+  font-size: 0.9rem;
+  min-width: 30px;
+}
+
+.trending-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.trending-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: #333;
+}
+
+.trending-username {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.trending-likes {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #f8f9fa;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #ff6b6b;
+}
+
+.hashtags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.hashtag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hashtag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Loading states */
+.loading-winner,
+.loading-trending,
+.no-winner,
+.no-trending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.loading-winner .spinner,
+.loading-trending .spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .trending-card {
+    padding: 1rem;
+  }
+  
+  .winner-item,
+  .trending-item {
+    padding: 0.75rem;
+  }
+  
+  .hashtags-list {
+    gap: 0.25rem;
+  }
+  
+  .hashtag {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+  }
+} 
