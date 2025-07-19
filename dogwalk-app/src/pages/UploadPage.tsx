@@ -46,7 +46,7 @@ const UploadPage: React.FC = () => {
 
     try {
       // Real upload to backend
-      const response = await apiService.uploadVideo(
+      await apiService.uploadVideo(
         selectedFile,
         videoTitle,
         videoDescription,

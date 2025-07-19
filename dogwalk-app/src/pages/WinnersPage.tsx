@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Star, DollarSign, Gift, Calendar, Share2 } from 'lucide-react';
+import { Trophy, DollarSign, Gift, Calendar, Share2 } from 'lucide-react';
 import './WinnersPage.css';
 
 interface Winner {
