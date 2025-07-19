@@ -1,7 +1,7 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Video, Trophy, Heart, Share2 } from 'lucide-react';
+import { User, Video, Trophy, Heart, Share2, Edit, Settings, LogOut } from 'lucide-react';
 import './ProfilePage.css';
 
 interface UserVideo {
@@ -16,19 +16,59 @@ interface UserVideo {
 
 const ProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
-  
-  // Mock user data
-  const user = {
-    username: username || 'demo_user',
-    displayName: 'Yuki Tanaka',
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-    bio: 'Tokyo-based photographer capturing the city\'s atmosphere through nightly dog walks. Sharing the magic of urban nights! 🌃✨',
-    followers: 1247,
-    following: 892,
-    totalLikes: 5678,
-    videosCount: 23,
-    achievements: 5,
-    joinDate: 'March 2023'
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isCurrentUser, setIsCurrentUser] = useState(false);
+
+  useEffect(() => {
+    // Get user data from localStorage
+    const userData = localStorage.getItem('dogwalk_user');
+    if (userData) {
+      const currentUser = JSON.parse(userData);
+      setIsCurrentUser(currentUser.username === username);
+      
+      // For demo, use current user data or create mock data
+      if (currentUser.username === username) {
+        setUser({
+          ...currentUser,
+          displayName: currentUser.username,
+          avatar: currentUser.profileImage || 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          followers: 1247,
+          following: 892,
+          totalLikes: 5678,
+          videosCount: 23,
+          achievements: 5,
+          joinDate: new Date(currentUser.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        });
+      } else {
+        // Mock data for other users
+        setUser({
+          username: username || 'demo_user',
+          displayName: 'Yuki Tanaka',
+          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+          bio: 'Tokyo-based photographer capturing the city\'s atmosphere through nightly dog walks. Sharing the magic of urban nights! 🌃✨',
+          followers: 1247,
+          following: 892,
+          totalLikes: 5678,
+          videosCount: 23,
+          achievements: 5,
+          joinDate: 'March 2023'
+        });
+      }
+    } else {
+      // No user logged in, redirect to login
+      navigate('/login');
+    }
+  }, [username, navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('dogwalk_user');
+    navigate('/login');
+  };
+
+  const handleEditProfile = () => {
+    setIsEditing(true);
   };
 
   const userVideos: UserVideo[] = [
@@ -87,44 +127,63 @@ const ProfilePage: React.FC = () => {
         >
           <div className="profile-cover">
             <div className="profile-avatar">
-              <img src={user.avatar} alt={user.displayName} />
+              <img src={user?.avatar} alt={user?.displayName} />
             </div>
           </div>
           
           <div className="profile-info">
             <div className="profile-main">
-              <h1>@{user.username}</h1>
-              <h2>{user.displayName}</h2>
-              <p className="profile-bio">{user.bio}</p>
-              <p className="join-date">Joined {user.joinDate}</p>
+              <div className="profile-header-row">
+                <div>
+                  <h1>@{user?.username}</h1>
+                  <h2>{user?.displayName}</h2>
+                  <p className="profile-bio">{user?.bio}</p>
+                  <p className="join-date">Joined {user?.joinDate}</p>
+                </div>
+                {isCurrentUser && (
+                  <div className="profile-actions">
+                    <button className="edit-btn" onClick={handleEditProfile}>
+                      <Edit size={16} />
+                      Edit Profile
+                    </button>
+                    <button className="settings-btn">
+                      <Settings size={16} />
+                    </button>
+                    <button className="logout-btn" onClick={handleLogout}>
+                      <LogOut size={16} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            
             </div>
             
             <div className="profile-stats">
               <div className="stat-item">
                 <Video size={20} />
                 <div className="stat-content">
-                  <span className="stat-number">{user.videosCount}</span>
+                  <span className="stat-number">{user?.videosCount}</span>
                   <span className="stat-label">Videos</span>
                 </div>
               </div>
               <div className="stat-item">
                 <User size={20} />
                 <div className="stat-content">
-                  <span className="stat-number">{formatNumber(user.followers)}</span>
+                  <span className="stat-number">{formatNumber(user?.followers || 0)}</span>
                   <span className="stat-label">Followers</span>
                 </div>
               </div>
               <div className="stat-item">
                 <Heart size={20} />
                 <div className="stat-content">
-                  <span className="stat-number">{formatNumber(user.totalLikes)}</span>
+                  <span className="stat-number">{formatNumber(user?.totalLikes || 0)}</span>
                   <span className="stat-label">Likes</span>
                 </div>
               </div>
               <div className="stat-item">
                 <Trophy size={20} />
                 <div className="stat-content">
-                  <span className="stat-number">{user.achievements}</span>
+                  <span className="stat-number">{user?.achievements}</span>
                   <span className="stat-label">Achievements</span>
                 </div>
               </div>

@@ -6,6 +6,8 @@ import HomePage from './pages/HomePage';
 import UploadPage from './pages/UploadPage';
 import WinnersPage from './pages/WinnersPage';
 import ProfilePage from './pages/ProfilePage';
+import SignUpPage from './pages/SignUpPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
             <Route path="/upload" element={<UploadPage />} />
             <Route path="/winners" element={<WinnersPage />} />
             <Route path="/profile/:username" element={<ProfilePage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/login" element={<LoginPage />} />
           </Routes>
         </main>
       </div>
