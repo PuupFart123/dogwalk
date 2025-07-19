@@ -11,6 +11,11 @@ const compression = require('compression');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// For Vercel deployment, export the app
+if (process.env.VERCEL) {
+  module.exports = app;
+}
+
 // Security and performance middleware
 app.use(helmet({
   contentSecurityPolicy: false, // Disable for development
@@ -582,8 +587,11 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`🚀 DogWalk.com backend running on port ${PORT}`);
-  console.log(`📁 Upload directory: ${path.join(__dirname, 'uploads')}`);
-  console.log(`🗄️  Database: ${path.join(__dirname, 'dogwalk.db')}`);
-}); 
+// Start server only if not on Vercel
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 DogWalk.com backend running on port ${PORT}`);
+    console.log(`📁 Upload directory: ${path.join(__dirname, 'uploads')}`);
+    console.log(`🗄️  Database: ${path.join(__dirname, 'dogwalk.db')}`);
+  });
+} 
