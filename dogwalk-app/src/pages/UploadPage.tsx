@@ -23,11 +23,7 @@ const UploadPage: React.FC = () => {
         return;
       }
 
-      // Check file size (max 50MB)
-      if (file.size > 50 * 1024 * 1024) {
-        alert('File size must be less than 50MB');
-        return;
-      }
+      // No file size limit - removed 50MB restriction
 
       setSelectedFile(file);
       setUploadComplete(false);
@@ -132,7 +128,7 @@ const UploadPage: React.FC = () => {
               >
                 <Upload size={48} />
                 <h3>Click to upload or drag and drop</h3>
-                <p>MP4, MOV, AVI up to 50MB</p>
+                <p>MP4, MOV, AVI - Any size</p>
                 <span className="upload-hint">Maximum 30 seconds</span>
               </div>
             ) : (
